@@ -1,4 +1,5 @@
 package com.company;
+
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -6,6 +7,9 @@ import java.util.Scanner;
  * Interface representing states of contest
  */
 interface ContestState {
+    /**
+     * @param photoContest - concrete contest
+     */
     void nextState(PhotoContest photoContest);
 }
 
@@ -14,30 +18,60 @@ interface ContestState {
  */
 class ContestApplication implements ContestState {
 
+    /**
+     * Transaction to next state: Plagiarism checking
+     *
+     * @param photoContest - concrete contest
+     */
     @Override
     public void nextState(PhotoContest photoContest) {
         photoContest.contestState = new ContestChoice();
     }
 }
 
+/**
+ * Contest state, during which admin checking for plagiarism
+ */
 class ContestChoice implements ContestState {
 
+    /**
+     * Transaction to next state: Voting
+     *
+     * @param photoContest - concrete contest
+     */
     @Override
     public void nextState(PhotoContest photoContest) {
         photoContest.contestState = new ContestVote();
     }
 }
 
+/**
+ * Contest state, during which vote is opened
+ */
 class ContestVote implements ContestState {
 
+    /**
+     * Transaction to next state: Awarding ceremony
+     *
+     * @param photoContest - concrete contest
+     */
     @Override
     public void nextState(PhotoContest photoContest) {
         photoContest.contestState = new ContestAwarding();
     }
 }
 
+/**
+ * Contest state, during which the winner is determined
+ */
 class ContestAwarding implements ContestState {
 
+    /**
+     * Transaction to next state: Closure of contest
+     * And outputs that contest is closed
+     *
+     * @param photoContest - concrete contest
+     */
     @Override
     public void nextState(PhotoContest photoContest) {
         photoContest.contestState = new ContestClosed();
@@ -45,14 +79,25 @@ class ContestAwarding implements ContestState {
     }
 }
 
+/**
+ * Contest state, during which the contest is closed
+ */
 class ContestClosed implements ContestState {
 
+    /**
+     * Outputs that contest is closed
+     *
+     * @param photoContest - concrete contest
+     */
     @Override
     public void nextState(PhotoContest photoContest) {
         System.out.println("Contest '"+photoContest.topic+"' is closed.");
     }
 }
 
+/**
+ * Class represents a singular photo contest
+ */
 class PhotoContest {
     ContestState contestState;
     private final ArrayList<Subscriber<ContestState>> photographersList = new ArrayList<>();
@@ -64,93 +109,190 @@ class PhotoContest {
         contestState = new ContestApplication();
     }
 
+    /**
+     * Add subscriber to the list of photographers
+     * and change state of photographer to Registered
+     *
+     * @param subscriber - concrete Photographer
+     */
     public void subscribe(Photographer subscriber) {
         subscriber.accepted();
         photographersList.add(subscriber);
     }
 
+    /**
+     * Getter for photographers list
+     *
+     * @return array list of photographers
+     */
     public ArrayList<Subscriber<ContestState>> getPhotographersList() {
         return photographersList;
     }
 
+    /**
+     * Automatic notification for subscribers
+     */
     public void notification() {
+
+        //For each subscriber from list of photographers notification is sent
         for (Subscriber<ContestState> contest :
                 photographersList) {
             contest.notification(contestState);
         }
     }
 
+    /**
+     * Current state of Contest is finished, change to the next one
+     */
     public void deadline() {
         contestState.nextState(this);
     }
 }
 
+/**
+ * Interface representing states of photographer
+ */
 interface PhotographerState {
+    /**
+     * Transition in case of failure. Transitions: 3, 5, 6
+     *
+     * @param photographer - concrete photographer
+     */
     void failed(Photographer photographer);
 
+    /**
+     * Transition in case of approval. Transitions: 1, 2, 4, 7, 8, 9
+     *
+     * @param photographer - concrete photographer
+     */
     void accepted(Photographer photographer);
 
 }
 
+/**
+ * Photographer state represents his/her failure of contest
+ */
 class PhotographerFailure implements PhotographerState {
 
+    /**
+     * Nothing happens in case of failure
+     *
+     * @param photographer - concrete photographer
+     */
     @Override
     public void failed(Photographer photographer) {
 
     }
 
+    /**
+     * Returns to Initial state in case of acceptance
+     *
+     * @param photographer - concrete photographer
+     */
     @Override
     public void accepted(Photographer photographer) {
         photographer.setState(new PhotographerInitial());
     }
 }
 
+/**
+ * Photographer state represents arbitrary photographer not associated with the competition
+ */
 class PhotographerInitial implements PhotographerState {
 
+    /**
+     * Nothing happens in case of failure
+     *
+     * @param photographer - concrete photographer
+     */
     @Override
     public void failed(Photographer photographer) {
 
     }
 
+    /**
+     * Switches to Registration state in case of acceptance
+     *
+     * @param photographer - concrete photographer
+     */
     @Override
     public void accepted(Photographer photographer) {
         photographer.setState(new PhotographerRegistration());
     }
 }
 
+/**
+ * Photographer state represents photographers registered to the contest
+ */
 class PhotographerRegistration implements PhotographerState {
 
+    /**
+     * Switches to Failure state in case of failure
+     *
+     * @param photographer - concrete photographer
+     */
     @Override
     public void failed(Photographer photographer) {
         photographer.setState(new PhotographerFailure());
     }
 
+    /**
+     * Switches to Promoted state in case of acceptance
+     *
+     * @param photographer - concrete photographer
+     */
     @Override
     public void accepted(Photographer photographer) {
         photographer.setState(new PhotographerPromoted());
     }
 }
 
+/**
+ * Photographer state represents photographers on plagiarism checking stage
+ */
 class PhotographerPromoted implements PhotographerState {
 
+    /**
+     * Switches to Failure state in case of failure
+     *
+     * @param photographer - concrete photographer
+     */
     @Override
     public void failed(Photographer photographer) {
         photographer.setState(new PhotographerFailure());
     }
 
+    /**
+     * Switches to Contest state in case of acceptance
+     *
+     * @param photographer - concrete photographer
+     */
     @Override
     public void accepted(Photographer photographer) {
         photographer.setState(new PhotographerContest());
     }
 }
 
+/**
+ * Photographer state represents photographers registered to the contest
+ */
 class PhotographerContest implements PhotographerState {
 
+    /**
+     * Switches to Failure state in case of failure
+     *
+     * @param photographer - concrete photographer
+     */
     @Override
     public void failed(Photographer photographer) {
         photographer.setState(new PhotographerFailure());
     }
 
+    /**
+     * Switches to Winner state in case of acceptance
+     *
+     * @param photographer - concrete photographer
+     */
     @Override
     public void accepted(Photographer photographer) {
         photographer.setState(new PhotographerWinner());
@@ -159,17 +301,44 @@ class PhotographerContest implements PhotographerState {
 
 class PhotographerWinner implements PhotographerState {
 
+    /**
+     * Nothing happens in case of failure
+     *
+     * @param photographer - concrete photographer
+     */
     @Override
     public void failed(Photographer photographer) {
 
     }
 
+    /**
+     * Switches to Initial state in case of acceptance
+     *
+     * @param photographer - concrete photographer
+     */
     @Override
     public void accepted(Photographer photographer) {
         photographer.setState(new PhotographerInitial());
     }
 }
 
+/**
+ * Interface for Observer
+ *
+ * @param <T> - parameter on which notifications depend
+ */
+interface Subscriber<T> {
+    /**
+     * Sends notification to special photographers
+     *
+     * @param t - parameter on which notifications depend
+     */
+    void notification(T t);
+}
+
+/**
+ * Class represents a photographer
+ */
 class Photographer implements Subscriber<ContestState> {
     private PhotographerState state;
     String name;
@@ -180,6 +349,11 @@ class Photographer implements Subscriber<ContestState> {
     boolean accepted;
     int rate;
 
+    /**
+     * Primal constructor
+     *
+     * @param name - name of photographer
+     */
     private Photographer(String name) {
         this.state = new PhotographerInitial();
         this.name = name;
@@ -188,6 +362,13 @@ class Photographer implements Subscriber<ContestState> {
         rate = 0;
     }
 
+    /**
+     * Constructor with name and phone number or email
+     * Could be used only by the programmer-user of system, so no checking for correctness of phone number or email
+     *
+     * @param name - name of photographer
+     * @param contact - how to contact with photographer (by email or sms)
+     */
     Photographer(String name, String contact) {
         this(name);
         if (contact.contains("@"))
@@ -415,13 +596,12 @@ class Photographer implements Subscriber<ContestState> {
                 System.out.println(notifyData + "Your rate is " + rate + ".");
             } else if (state instanceof PhotographerWinner) {
                 System.out.println(name + " is the winner!");
+                accepted();
+            } else if (state instanceof PhotographerFailure){
+                accepted();
             }
         }
     }
-}
-
-interface Subscriber<T> {
-    void notification(T t);
 }
 
 class Admin {

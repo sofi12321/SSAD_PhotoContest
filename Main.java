@@ -7,9 +7,6 @@ import java.util.Scanner;
  * Interface representing states of contest
  */
 interface ContestState {
-    /**
-     * @param photoContest
-     */
     void nextState(PhotoContest photoContest);
 }
 
@@ -79,9 +76,9 @@ class PhotoContest {
     }
 
     public void notification() {
-        for (Observer<ContestState> x :
+        for (Observer<ContestState> contest :
                 photographersList) {
-            x.notification(contestState);
+            contest.notification(contestState);
         }
     }
 

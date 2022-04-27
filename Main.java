@@ -21,9 +21,7 @@ class ContestApplication implements ContestState {
     }
 }
 
-/**
- *
- */
+
 class ContestChoice implements ContestState {
 
     @Override
@@ -45,7 +43,7 @@ class ContestAwarding implements ContestState {
     @Override
     public void nextState(PhotoContest photoContest) {
         photoContest.contestState = new ContestClosed();
-        System.out.println("Contest is closed.");
+        System.out.println("Contest '"+photoContest.topic+"' is closed.");
     }
 }
 
@@ -53,7 +51,7 @@ class ContestClosed implements ContestState {
 
     @Override
     public void nextState(PhotoContest photoContest) {
-        System.out.println("Contest is closed.");
+        System.out.println("Contest '"+photoContest.topic+"' is closed.");
     }
 }
 
@@ -61,8 +59,10 @@ class PhotoContest {
     ContestState contestState;
     private final ArrayList<Observer<ContestState>> photographersList = new ArrayList<>();
     int winnerRate;
+    String topic;
 
-    PhotoContest() {
+    PhotoContest(String name) {
+        topic = name;
         contestState = new ContestApplication();
     }
 
@@ -287,7 +287,7 @@ class Photographer implements Observer<ContestState> {
         if (newMail.equals("")) {
             System.out.println("Oh, you didn't enter your email!");
             return false;
-        } else if (!"qwertyuiopasdfghjklzxcvbnm".contains(newMail.toLowerCase().substring(0, 1))) {
+        } else if (!"abcdefghijklmnopqrstuvwxyz".contains(newMail.toLowerCase().substring(0, 1))) {
             System.out.println("First letter have to start with the english character");
             return false;
         } else if (!newMail.contains("@")) {
@@ -303,24 +303,24 @@ class Photographer implements Observer<ContestState> {
                 return false;
             }
             for (int i = 0; i < st[0].length(); i++) {
-                if (!"qwertyuiopasdfghjklzxcvbnm1234567890_.".contains(newMail.substring(i, i + 1))) {
+                if (!"abcdefghijklmnopqrstuvwxyz1234567890_.".contains(newMail.substring(i, i + 1))) {
                     System.out.println("You can use only english letters, digits, '.' or '_' before the @ sign");
                     return false;
                 }
             }
             for (int i = st[0].length() + 1; i < newMail.indexOf('.'); i++) {
-                if (!"qwertyuiopasdfghjklzxcvbnm".contains(newMail.substring(i, i + 1))) {
+                if (!"abcdefghijklmnopqrstuvwxyz".contains(newMail.substring(i, i + 1))) {
                     System.out.println("You can use only english letters and only one . after the @ sign");
                     return false;
                 }
             }
             for (int i = newMail.indexOf('.') + 1; i < newMail.length() - 1; i++) {
-                if (!"qwertyuiopasdfghjklzxcvbnm".contains(newMail.substring(i, i + 1))) {
+                if (!"abcdefghijklmnopqrstuvwxyz".contains(newMail.substring(i, i + 1))) {
                     System.out.println("You can use only english letters or '.' after the @ sign");
                     return false;
                 }
             }
-            if (!"qwertyuiopasdfghjklzxcvbnm".contains(newMail.substring(newMail.length() - 1))) {
+            if (!"abcdefghijklmnopqrstuvwxyz".contains(newMail.substring(newMail.length() - 1))) {
                 System.out.println("You can use only english letters and only one '.' after the @ sign");
                 return false;
             }
@@ -345,10 +345,10 @@ class Photographer implements Observer<ContestState> {
 
     public void register(PhotoContest photoContest) {
         if (photoContest.contestState instanceof ContestApplication) {
-            System.out.println("Photographer " + name + " successfully registered.");
+            System.out.println(this.notifyData+"You successfully registered.");
             photoContest.subscribe(this);
         } else {
-            System.out.println("Photographer " + name + " cannot register for the contest.");
+            System.out.println(this.notifyData+"You cannot register for the contest.");
         }
     }
 
@@ -356,9 +356,9 @@ class Photographer implements Observer<ContestState> {
         if (state instanceof Registration) {
             this.photo = photo;
             accepted();
-            System.out.println(notifyData + "You successfully send a photo.");
+            System.out.println(notifyData + "You successfully send a photo '" +this.photo+"'.");
         } else {
-            System.out.println(notifyData + "You can't submit a photo.");
+            System.out.println(notifyData + "You cannot submit a photo.");
         }
 
     }
@@ -366,12 +366,12 @@ class Photographer implements Observer<ContestState> {
     public void sendPhoto() {
         if (state instanceof Registration) {
             Scanner scan = new Scanner(System.in);
-            System.out.println("Please, " + name + " enter name of the photo:");
+            System.out.println("Please, " + name + ", enter name of the photo:");
             this.photo = scan.nextLine();
             accepted();
             System.out.println(notifyData + "You successfully send a photo.");
         } else {
-            System.out.println(notifyData + "You can not submit a photo.");
+            System.out.println(notifyData + "You cannot submit a photo.");
         }
 
     }
@@ -433,7 +433,7 @@ class Admin {
 
     PhotoContest createNewContest(String topic) {
         System.out.println("New contest about '" + topic + "' is opened.");
-        photoContest = new PhotoContest();
+        photoContest = new PhotoContest(topic);
         this.topic = topic;
         return photoContest;
     }
@@ -448,23 +448,23 @@ class Admin {
 
     public void peerReviewSession() {
         photographersList = photoContest.getPhotographersList();
-        for (Object x :
+        for (Object photographer :
                 photographersList) {
-            if (x instanceof Photographer && ((Photographer) x).getState() instanceof Application) {
+            if (photographer instanceof Photographer && ((Photographer) photographer).getState() instanceof Application) {
 //                if photographer went over plagiarism
-                ((Photographer) x).accepted = plagiarismChecker((Photographer) x);
+                ((Photographer) photographer).accepted = plagiarismChecker((Photographer) photographer);
             }
         }
         photoContest.deadline();
         photoContest.notification();
     }
 
-    boolean plagiarismChecker(Photographer photographer) {
-        for (Object x : photographersList) {
-            if (!x.equals(photographer) && x instanceof Photographer && (((Photographer) x).getState() instanceof Application || ((Photographer) x).getState() instanceof Contest)) {
-                if (((Photographer) x).photo.equals(photographer.photo)) {
-                    photographer.accepted = false;
-                    ((Photographer) x).accepted = false;
+    boolean plagiarismChecker(Photographer photographerOnChecking) {
+        for (Object photographer : photographersList) {
+            if (!photographer.equals(photographerOnChecking) && photographer instanceof Photographer && (((Photographer) photographer).getState() instanceof Application || ((Photographer) photographer).getState() instanceof Contest)) {
+                if (((Photographer) photographer).photo.equals(photographerOnChecking.photo)) {
+                    photographerOnChecking.accepted = false;
+                    ((Photographer) photographer).accepted = false;
                     return false;
                 }
             }
@@ -475,10 +475,10 @@ class Admin {
     public void votingSession() {
         int max = 0;
         System.out.println("Now we will vote to choose the best one!");
-        for (Object x : photographersList) {
-            if (x instanceof Photographer && ((Photographer) x).getState() instanceof Contest) {
-                int rate = setRating((Photographer) x);
-                ((Photographer) x).rate = rate;
+        for (Object photographer : photographersList) {
+            if (photographer instanceof Photographer && ((Photographer) photographer).getState() instanceof Contest) {
+                int rate = setRating((Photographer) photographer);
+                ((Photographer) photographer).rate = rate;
                 if (rate > max) {
                     photoContest.winnerRate = rate;
                     max = rate;
@@ -493,22 +493,21 @@ class Admin {
         System.out.println("How many likes does " + photographer.photo + " have?");
         int rate = 0;
         Scanner scan = new Scanner(System.in);
-        String line = scan.nextLine();
         try {
-            rate = Integer.parseInt(line);
+            rate = Integer.parseInt(scan.nextLine());
         } catch (NumberFormatException exc) {
-            System.out.println("Accapted only integers. Rating for " + photographer.photo + " is 0.");
+            System.out.println("Accepted only integers. Rating for " + photographer.photo + " is 0.");
         }
         return rate;
     }
 
     public void chooseWinner() {
-        for (Object x : photographersList) {
-            if (x instanceof Photographer && ((Photographer) x).getState() instanceof Contest) {
-                if (((Photographer) x).rate == photoContest.winnerRate) {
-                    ((Photographer) x).accepted();
+        for (Object photographer : photographersList) {
+            if (photographer instanceof Photographer && ((Photographer) photographer).getState() instanceof Contest) {
+                if (((Photographer) photographer).rate == photoContest.winnerRate) {
+                    ((Photographer) photographer).accepted();
                 } else {
-                    ((Photographer) x).failed();
+                    ((Photographer) photographer).failed();
                 }
             }
         }
@@ -546,8 +545,8 @@ public class Main {
 //        Let PG2 & PG5 send the same photo
         photographers.get(1).register(photoContest);
         photographers.get(5).register(photoContest);
-        photographers.get(5).sendPhoto("PlagiatedPhoto");
-        photographers.get(1).sendPhoto("PlagiatedPhoto");
+        photographers.get(5).sendPhoto("PhotoWithPlagiarism");
+        photographers.get(1).sendPhoto("PhotoWithPlagiarism");
         System.out.println();
 
 //        The deadline for registration and sending photos

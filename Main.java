@@ -762,5 +762,6 @@ public class Main {
 
         PhotoContest photoContest1 = admin.createNewContest("ZMIY");
         System.out.println(photoContest1.contestState);
+
     }
 }

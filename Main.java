@@ -500,7 +500,7 @@ class Admin {
         }
         return rate;
     }
-
+// x or photographer
     public void chooseWinner() {
         for (Object photographer : photographersList) {
             if (photographer instanceof Photographer && ((Photographer) photographer).getState() instanceof Contest) {

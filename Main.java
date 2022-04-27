@@ -8,7 +8,7 @@ import java.util.Scanner;
  */
 interface ContestState {
     /**
-     * @param photoContest
+     * @param photoContest - concrete contest
      */
     void nextState(PhotoContest photoContest);
 }
@@ -18,6 +18,11 @@ interface ContestState {
  */
 class ContestApplication implements ContestState {
 
+    /**
+     * Transaction to next state: Plagiarism checking
+     *
+     * @param photoContest - concrete contest
+     */
     @Override
     public void nextState(PhotoContest photoContest) {
         photoContest.contestState = new ContestChoice();
@@ -25,26 +30,48 @@ class ContestApplication implements ContestState {
 }
 
 /**
- *
- */
+ * Contest state, during which admin checking for plagiarism
+  */
 class ContestChoice implements ContestState {
 
+    /**
+     * Transaction to next state: Voting
+     *
+     * @param photoContest - concrete contest
+     */
     @Override
     public void nextState(PhotoContest photoContest) {
         photoContest.contestState = new ContestVote();
     }
 }
 
+/**
+ * Contest state, during which vote is opened
+ */
 class ContestVote implements ContestState {
 
+    /**
+     * Transaction to next state: Awarding ceremony
+     *
+     * @param photoContest - concrete contest
+     */
     @Override
     public void nextState(PhotoContest photoContest) {
         photoContest.contestState = new ContestAwarding();
     }
 }
 
+/**
+ * Contest state, during which the winner is determined
+ */
 class ContestAwarding implements ContestState {
 
+    /**
+     * Transaction to next state: Closure of contest
+     * And outputs that contest is closed
+     *
+     * @param photoContest - concrete contest
+     */
     @Override
     public void nextState(PhotoContest photoContest) {
         photoContest.contestState = new ContestClosed();
@@ -52,14 +79,25 @@ class ContestAwarding implements ContestState {
     }
 }
 
+/**
+ * Contest state, during which the contest is closed
+ */
 class ContestClosed implements ContestState {
 
+    /**
+     * Outputs that contest is closed
+     *
+     * @param photoContest - concrete contest
+     */
     @Override
     public void nextState(PhotoContest photoContest) {
         System.out.println("Contest is closed.");
     }
 }
 
+/**
+ * Class represents a singular photo contest
+ */
 class PhotoContest {
     ContestState contestState;
     private final ArrayList<Observer<ContestState>> photographersList = new ArrayList<>();

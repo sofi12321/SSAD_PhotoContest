@@ -1,5 +1,4 @@
 package com.company;
-
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -20,7 +19,6 @@ class ContestApplication implements ContestState {
         photoContest.contestState = new ContestChoice();
     }
 }
-
 
 class ContestChoice implements ContestState {
 
@@ -369,7 +367,7 @@ class Photographer implements Observer<ContestState> {
             System.out.println("Please, " + name + ", enter name of the photo:");
             this.photo = scan.nextLine();
             accepted();
-            System.out.println(notifyData + "You successfully send a photo.");
+            System.out.println(notifyData + "You have successfully sent a photo.");
         } else {
             System.out.println(notifyData + "You cannot submit a photo.");
         }
@@ -398,7 +396,7 @@ class Photographer implements Observer<ContestState> {
         if (contestState instanceof ContestChoice) {
             if (photo == null) {
                 failed();
-                System.out.println(notifyData + "You didn't submit a photo. You failed the contest.");
+                System.out.println(notifyData + "You didn't submit a photo on time. You failed the contest.");
             } else {
                 System.out.println(notifyData + "Your submission is on review.");
             }
@@ -500,7 +498,7 @@ class Admin {
         }
         return rate;
     }
-    // x or photographer
+
     public void chooseWinner() {
         for (Object photographer : photographersList) {
             if (photographer instanceof Photographer && ((Photographer) photographer).getState() instanceof Contest) {

@@ -107,30 +107,61 @@ class PhotoContest {
         contestState = new ContestApplication();
     }
 
+    /**
+     * Add subscriber to the list of photographers
+     * and change state of photographer to Registered
+     *
+     * @param subscriber - concrete Photographer
+     */
     public void subscribe(Photographer subscriber) {
         subscriber.accepted();
         photographersList.add(subscriber);
     }
 
+    /**
+     * Getter for photographers list
+     *
+     * @return array list of photographers
+     */
     public ArrayList<Observer<ContestState>> getPhotographersList() {
         return photographersList;
     }
 
+    /**
+     * Automatic notification for subscribers
+     */
     public void notification() {
+
+        //For each observer from list of photographers notification is sent
         for (Observer<ContestState> x :
                 photographersList) {
             x.notification(contestState);
         }
     }
 
+    /**
+     * Current state of Contest is finished, change to the next one
+     */
     public void deadline() {
         contestState.nextState(this);
     }
 }
 
+/**
+ * Interface representing states of photographer
+ */
 interface PhotographerState {
+    /**
+     * Transition in case of failure. Transitions:
+     *
+     * @param photographer - concrete photographer
+     */
     void failed(Photographer photographer);
 
+    /**
+     *
+     * @param photographer - concrete photographer
+     */
     void accepted(Photographer photographer);
 
 }
@@ -538,7 +569,7 @@ class Admin {
         try {
             rate = Integer.parseInt(line);
         } catch (NumberFormatException exc) {
-            System.out.println("Accapted only integers. Rating for " + photographer.photo + " is 0.");
+            System.out.println("Accepted only integers. Rating for " + photographer.photo + " is 0.");
         }
         return rate;
     }

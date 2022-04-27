@@ -856,7 +856,6 @@ public class Main {
         Admin admin = new Admin();
         PhotoContest photoContest = admin.createNewContest("ЗМИЙ");
         System.out.println();
-
         ArrayList<Photographer> photographers = new ArrayList<>();
 
         photographers.add(new Photographer());
@@ -900,6 +899,7 @@ public class Main {
 
         System.out.println();
         admin.votingSession();
+
 
         System.out.println();
         System.out.println(photographers.get(0).getState());

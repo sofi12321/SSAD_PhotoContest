@@ -14,7 +14,7 @@ interface ContestState {
 }
 
 /**
- *
+ * Contest state, during which photographers can register and send applications for contest
  */
 class ContestApplication implements ContestState {
 

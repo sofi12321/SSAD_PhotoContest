@@ -237,20 +237,20 @@ class PhotographerRegistration implements PhotographerState {
     }
 
     /**
-     * Switches to Promoted state in case of acceptance
+     * Switches to Application state in case of acceptance
      *
      * @param photographer - concrete photographer
      */
     @Override
     public void accepted(Photographer photographer) {
-        photographer.setState(new PhotographerPromoted());
+        photographer.setState(new PhotographerApplication());
     }
 }
 
 /**
  * Photographer state represents photographers on plagiarism checking stage
  */
-class PhotographerPromoted implements PhotographerState {
+class PhotographerApplication implements PhotographerState {
 
     /**
      * Switches to Failure state in case of failure
@@ -263,20 +263,20 @@ class PhotographerPromoted implements PhotographerState {
     }
 
     /**
-     * Switches to Contest state in case of acceptance
+     * Switches to Promoted state in case of acceptance
      *
      * @param photographer - concrete photographer
      */
     @Override
     public void accepted(Photographer photographer) {
-        photographer.setState(new PhotographerContest());
+        photographer.setState(new PhotographerPromoted());
     }
 }
 
 /**
  * Photographer state represents photographers registered to the contest
  */
-class PhotographerContest implements PhotographerState {
+class PhotographerPromoted implements PhotographerState {
 
     /**
      * Switches to Failure state in case of failure
@@ -436,6 +436,11 @@ class Photographer implements Subscriber<ContestState> {
         System.out.println(notifyData + "You have been successfully discovered as a photographer");
     }
 
+    /**
+     * Setting email, using Scanner
+     *
+     * @param scan - Scanner object
+     */
     private void setEmail(Scanner scan) {
         System.out.println("Now, enter your email: ");
         while (!setEmail(scan.nextLine())) {
@@ -443,6 +448,11 @@ class Photographer implements Subscriber<ContestState> {
         }
     }
 
+    /**
+     * Setting phone number, using Scanner
+     *
+     * @param scan - Scanner object
+     */
     private void setPhone(Scanner scan) {
         System.out.println("Lets set your phone number: ");
         while (!setPhoneNumber(scan.nextLine())) {
@@ -450,12 +460,20 @@ class Photographer implements Subscriber<ContestState> {
         }
     }
 
+    /**
+     * Inputting phone number and checking for validity
+     *
+     * @param newPhone - String phone number
+     * @return true, if number is valid; false, otherwise
+     */
     private boolean setPhoneNumber(String newPhone) {
+        //Not empty
         if (newPhone.equals("")) {
             System.out.println("Oh, you didn't enter your phone number!");
             return false;
         } else {
             phoneNumber = "";
+            //Only numbers, special symbols and length not more than 11 symbols
             for (char c : newPhone.toCharArray()) {
                 if ("0123456789".contains(String.valueOf(c))) {
                     phoneNumber = phoneNumber.concat(String.valueOf(c));
@@ -469,6 +487,7 @@ class Photographer implements Subscriber<ContestState> {
                 }
             }
         }
+        //Exactly 11 digits in number
         if (phoneNumber.length() != 11) {
             System.out.println("Phone number have to have exactly 11 digits");
             return false;
@@ -476,17 +495,31 @@ class Photographer implements Subscriber<ContestState> {
         return true;
     }
 
+    /**
+     * Inputting email and checking for validity
+     *
+     * @param newMail - String email
+     * @return true, if email is valid; false, otherwise
+     */
     private boolean setEmail(String newMail) {
+        //Not empty
         if (newMail.equals("")) {
             System.out.println("Oh, you didn't enter your email!");
             return false;
-        } else if (!"abcdefghijklmnopqrstuvwxyz".contains(newMail.toLowerCase().substring(0, 1))) {
+        }
+        //Starts with letter
+        else if (!"abcdefghijklmnopqrstuvwxyz".contains(newMail.toLowerCase().substring(0, 1))) {
             System.out.println("First letter have to start with the english character");
             return false;
-        } else if (!newMail.contains("@")) {
+        }
+        //Must contain @
+        else if (!newMail.contains("@")) {
             System.out.println("Email have to have an @");
             return false;
-        } else {
+        }
+        //Should be "english_text_and_digits@english_text.english_text"
+
+        else {
             String[] st = newMail.split("@");
             if (st.length < 2 || st[1].length() < 3) {
                 System.out.println("Email have to have at least one english letter before '.' and one after");
@@ -522,7 +555,11 @@ class Photographer implements Subscriber<ContestState> {
         return true;
     }
 
+    /**
+     * Create form of notifications
+     */
     private void setNotification() {
+        //Name + email/number of phone
         notifyData = "Notification for " + name + " was send to ";
         if (email != null && phoneNumber != null) {
             notifyData += email + " and " + phoneNumber;
@@ -536,6 +573,12 @@ class Photographer implements Subscriber<ContestState> {
         notifyData += ": ";
     }
 
+    /**
+     * Registration for the contest
+     * Change state and subscribe
+     *
+     * @param photoContest - concrete photo contest
+     */
     public void register(PhotoContest photoContest) {
         if (photoContest.contestState instanceof ContestApplication) {
             System.out.println(this.notifyData+"You successfully registered.");
@@ -545,9 +588,18 @@ class Photographer implements Subscriber<ContestState> {
         }
     }
 
+    /**
+     * Sending a photo to the contest
+     * Only Registered photographers can do it
+     * Can be done only by programmer-users
+     *
+     * @param photo - name of the photo
+     */
     public void sendPhoto(String photo) {
+        //Photographer should be registered
         if (state instanceof PhotographerRegistration) {
             this.photo = photo;
+            //Transition to Application state
             accepted();
             System.out.println(notifyData + "You successfully send a photo '" +this.photo+"'.");
         } else {
@@ -556,11 +608,17 @@ class Photographer implements Subscriber<ContestState> {
 
     }
 
+    /**
+     * Sending a photo to the contest through the console
+     * Only Registered photographers can do it
+     */
     public void sendPhoto() {
+        //Photographer should be registered
         if (state instanceof PhotographerRegistration) {
             Scanner scan = new Scanner(System.in);
             System.out.println("Please, " + name + ", enter name of the photo:");
             this.photo = scan.nextLine();
+            //Transition to Application state
             accepted();
             System.out.println(notifyData + "You have successfully sent a photo.");
         } else {
@@ -577,52 +635,89 @@ class Photographer implements Subscriber<ContestState> {
         this.state = state;
     }
 
+    /**
+     * Failed transition
+     */
     public void failed() {
         this.state.failed(this);
     }
 
+    /**
+     * Accepted transition
+     */
     public void accepted() {
         this.state.accepted(this);
     }
 
 
+    /**
+     * Send notification according to conditions
+     *
+     * @param contestState - concrete contest
+     */
     @Override
     public void notification(ContestState contestState) {
+        //In case of Plagiarism checking
         if (contestState instanceof ContestChoice) {
+            //Sent a photo
             if (photo == null) {
                 failed();
                 System.out.println(notifyData + "You didn't submit a photo on time. You failed the contest.");
-            } else {
+            }
+            //Did not send a photo
+            else {
                 System.out.println(notifyData + "Your submission is on review.");
             }
-        } else if (contestState instanceof ContestVote) {
-            if (state instanceof PhotographerPromoted) {
+        }
+        //In case of Voting
+        else if (contestState instanceof ContestVote) {
+            //Only photographers who sent a photo
+            if (state instanceof PhotographerApplication) {
+                //Photo was accepted
                 if (accepted) {
                     accepted();
                     System.out.println(notifyData + "Your photo was accepted for voting.");
-                } else {
+                }
+                //Photo was declined
+                else {
                     failed();
                     System.out.println(notifyData + "You didn't pass the review session.");
                 }
             }
-        } else if (contestState instanceof ContestAwarding) {
-            if (state instanceof PhotographerContest) {
+        }
+        //In case of Awarding
+        else if (contestState instanceof ContestAwarding) {
+            //Photographer in Promoted state
+            if (state instanceof PhotographerPromoted) {
                 System.out.println(notifyData + "Your rate is " + rate + ".");
-            } else if (state instanceof PhotographerWinner) {
+            }
+            //Photographer in Winner state
+            else if (state instanceof PhotographerWinner) {
                 System.out.println(name + " is the winner!");
                 accepted();
-            } else if (state instanceof PhotographerFailure){
+            }
+            //Photographer in Failure state
+            else if (state instanceof PhotographerFailure){
                 accepted();
             }
         }
     }
 }
 
+/**
+ * Organize contest, check for plagiarism, choose winner by console voting
+ */
 class Admin {
     private PhotoContest photoContest;
     String topic;
     ArrayList<Subscriber<ContestState>> photographersList;
 
+    /**
+     * Creates new contest
+     *
+     * @param topic - String topic of the contest
+     * @return new contest
+     */
     PhotoContest createNewContest(String topic) {
         System.out.println("New contest about '" + topic + "' is opened.");
         photoContest = new PhotoContest(topic);
@@ -630,30 +725,46 @@ class Admin {
         return photoContest;
     }
 
+    /**
+     * Close session for getting photos to the contest
+     */
     public void closeApplicationSession() {
         if (photoContest.contestState instanceof ContestApplication) {
             System.out.println("Application session for contest '" + topic + "' is closed");
+            //Next stage of contest
             photoContest.deadline();
+            //Notify
             photoContest.notification();
         }
     }
 
+    /**
+     * Plagiarism checking session
+     */
     public void peerReviewSession() {
         photographersList = photoContest.getPhotographersList();
         for (Object photographer :
                 photographersList) {
-            if (photographer instanceof Photographer && ((Photographer) photographer).getState() instanceof PhotographerPromoted) {
-//                if photographer went over plagiarism
+            if (photographer instanceof Photographer && ((Photographer) photographer).getState() instanceof PhotographerApplication) {
+                //If photographer went over plagiarism
                 ((Photographer) photographer).accepted = plagiarismChecker((Photographer) photographer);
             }
         }
+        //Next stage of contest
         photoContest.deadline();
+        //Notify
         photoContest.notification();
     }
 
-    boolean plagiarismChecker(Photographer photographerOnChecking) {
+    /**
+     * Searching for photo with the same name
+     *
+     * @param photographerOnChecking - concrete photographer
+     * @return true, if photographer is accepted for contest; false otherwise
+     */
+    private boolean plagiarismChecker(Photographer photographerOnChecking) {
         for (Object photographer : photographersList) {
-            if (!photographer.equals(photographerOnChecking) && photographer instanceof Photographer && (((Photographer) photographer).getState() instanceof PhotographerPromoted || ((Photographer) photographer).getState() instanceof PhotographerContest)) {
+            if (!photographer.equals(photographerOnChecking) && photographer instanceof Photographer && (((Photographer) photographer).getState() instanceof PhotographerApplication || ((Photographer) photographer).getState() instanceof PhotographerPromoted)) {
                 if (((Photographer) photographer).photo.equals(photographerOnChecking.photo)) {
                     photographerOnChecking.accepted = false;
                     ((Photographer) photographer).accepted = false;
@@ -664,16 +775,20 @@ class Admin {
         return true;
     }
 
+    /**
+     * Inputting number of votes for each photographer
+     */
     public void votingSession() {
         photoContest.winnerRate = 0;
         boolean isFirst = true;
 
         for (Object photographer : photographersList) {
-            if (photographer instanceof Photographer && ((Photographer) photographer).getState() instanceof PhotographerContest) {
+            if (photographer instanceof Photographer && ((Photographer) photographer).getState() instanceof PhotographerPromoted) {
                 if (isFirst) {
                     System.out.println("Now we will vote to choose the best one!");
                     isFirst = false;
                 }
+                //Set number for rate
                 int rate = setRating((Photographer) photographer);
                 ((Photographer) photographer).rate = rate;
                 if (rate > photoContest.winnerRate) {
@@ -681,11 +796,19 @@ class Admin {
                 }
             }
         }
+        //Next stage of contest
         photoContest.deadline();
+        //Тщешан
         photoContest.notification();
     }
 
-    int setRating(Photographer photographer) {
+    /**
+     * Inputting rating number
+     *
+     * @param photographer - concrete photographer
+     * @return number of rate
+     */
+    private int setRating(Photographer photographer) {
         System.out.println("How many likes does " + photographer.photo + " have?");
         int rate = 0;
         Scanner scan = new Scanner(System.in);
@@ -697,26 +820,37 @@ class Admin {
         return rate;
     }
 
+    /**
+     * Winner choosing procedure
+     */
     public void chooseWinner() {
+        //Should have more than 0 votes
         if (photoContest.winnerRate!= 0){
             for (Object photographer : photographersList) {
-                if (photographer instanceof Photographer && ((Photographer) photographer).getState() instanceof PhotographerContest) {
+                if (photographer instanceof Photographer && ((Photographer) photographer).getState() instanceof PhotographerPromoted) {
                     if (((Photographer) photographer).rate == photoContest.winnerRate) {
+                        //Next state for any photographer with max number of likes
                         ((Photographer) photographer).accepted();
                     } else {
+                        //Fail otherwise
                         ((Photographer) photographer).failed();
                     }
                 }
             }
+            //Notification for all, who participated at contest
             photoContest.notification();
         } else {
             System.out.println("Unfortunately, no one won the contest.");
         }
+        //Next stage of contest
         photoContest.deadline();
     }
 }
 
-//public class Main {
+/**
+ * Example of system usage
+ * Some photographers should be created
+ */
 public class Main {
     public static void main(String[] args) {
         Admin admin = new Admin();
@@ -773,8 +907,5 @@ public class Main {
         admin.chooseWinner();
         System.out.println(photographers.get(0).getState());
         System.out.println(photographers.get(2).getState());
-
-        PhotoContest photoContest1 = admin.createNewContest("ZMIY");
-        System.out.println(photoContest1.contestState);
     }
 }

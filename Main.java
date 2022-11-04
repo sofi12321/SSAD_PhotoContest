@@ -854,7 +854,7 @@ class Admin {
 public class Main {
     public static void main(String[] args) {
         Admin admin = new Admin();
-        PhotoContest photoContest = admin.createNewContest("ЗМИЙ");
+        PhotoContest photoContest = admin.createNewContest("Innopolis");
         System.out.println();
         ArrayList<Photographer> photographers = new ArrayList<>();
 
@@ -902,10 +902,6 @@ public class Main {
 
 
         System.out.println();
-        System.out.println(photographers.get(0).getState());
-        System.out.println(photographers.get(2).getState());
         admin.chooseWinner();
-        System.out.println(photographers.get(0).getState());
-        System.out.println(photographers.get(2).getState());
     }
 }
